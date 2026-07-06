@@ -111,6 +111,8 @@ dependency_overrides:
   intl: 0.20.2
   uuid: ^4.0.0
 
+  syncfusion_flutter_charts: 29.2.11
+
 dev_dependencies:
   flutter_launcher_icons: 0.13.1
   flutter_lints: 4.0.0

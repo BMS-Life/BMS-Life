@@ -110,6 +110,25 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) {
         builder: (context, params) => BookingDetailWidget(),
       ),
       FFRoute(
+        name: ExecutiveDashboardWidget.routeName,
+        path: ExecutiveDashboardWidget.routePath,
+        builder: (context, params) => ExecutiveDashboardWidget(),
+      ),
+      FFRoute(
+        name: WorkDetailPageWidget.routeName,
+        path: WorkDetailPageWidget.routePath,
+        builder: (context, params) => WorkDetailPageWidget(
+          workId: params.getParam('id', ParamType.String),
+        ),
+      ),
+      FFRoute(
+        name: PmDetailPageWidget.routeName,
+        path: PmDetailPageWidget.routePath,
+        builder: (context, params) => PmDetailPageWidget(
+          managerId: params.getParam('id', ParamType.String),
+        ),
+      ),
+      FFRoute(
         name: $u_i_library_3c2hbt.CoverWidget.routeName,
         path: $u_i_library_3c2hbt.CoverWidget.routePath,
         builder: (context, params) => $u_i_library_3c2hbt.CoverWidget(),
