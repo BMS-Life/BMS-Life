@@ -63,6 +63,9 @@ class _PmDetailPageWidgetState extends State<PmDetailPageWidget> {
   String _taskSearch = '';
   int _taskFilter = 0; // 0 ทั้งหมด 1 มีปัญหา 2 งานต่อเนื่อง 3 งานประจำ
   int _weekOffset = 0; // เลื่อนหน้าต่างกราฟย้อนหลัง (0 = ล่าสุด)
+  int _fYear = 2569;
+  String _fMonth = 'ก.ค.';
+  String _fWeek = 'สัปดาห์ที่ ${WeekInfo.weekNo}';
   static const int _histWeeks = 16; // ประวัติทั้งหมด
   static const int _windowWeeks = 6; // แสดงครั้งละกี่สัปดาห์
 
@@ -234,6 +237,133 @@ class _PmDetailPageWidgetState extends State<PmDetailPageWidget> {
     final theme = FlutterFlowTheme.of(context);
     final m = _manager;
     final sentAt = submittedAt(m);
+    final narrow = MediaQuery.sizeOf(context).width < 640.0;
+    if (narrow) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              InkWell(
+                onTap: () => context.safePop(),
+                borderRadius: BorderRadius.circular(999.0),
+                child: Container(
+                  width: 36.0,
+                  height: 36.0,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Color(0xFFE4E5E9)),
+                  ),
+                  child: Icon(Icons.arrow_back_rounded,
+                      size: 18.0, color: _kInk),
+                ),
+              ),
+              SizedBox(width: 12.0),
+              PmAvatar(name: m.name, avatarUrl: m.avatarUrl, size: 44.0),
+              SizedBox(width: 10.0),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      m.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 17.0,
+                        fontWeight: FontWeight.w700,
+                        color: _kInk,
+                      ),
+                    ),
+                    Text(
+                      m.position,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style:
+                          TextStyle(fontSize: 12.0, color: _kMuted),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 10.0),
+          Row(
+            children: [
+              if (sentAt != null) ...[
+                Expanded(
+                  child: Text(
+                    sentAt,
+                    style: TextStyle(
+                      fontSize: 12.0,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF14804A),
+                    ),
+                  ),
+                ),
+              ] else
+                Spacer(),
+              Container(
+                padding: EdgeInsets.symmetric(
+                    horizontal: 10.0, vertical: 5.0),
+                decoration: BoxDecoration(
+                  color: m.reportSubmitted
+                      ? Color(0xFFE3F5EB)
+                      : Color(0xFFFDECEC),
+                  borderRadius: BorderRadius.circular(999.0),
+                ),
+                child: Text(
+                  m.reportSubmitted ? 'ส่งแล้ว' : 'ยังไม่ส่ง',
+                  style: TextStyle(
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.w700,
+                    color: m.reportSubmitted
+                        ? Color(0xFF14804A)
+                        : Color(0xFFC0392B),
+                  ),
+                ),
+              ),
+              SizedBox(width: 8.0),
+              ValueListenableBuilder<Set<String>>(
+                valueListenable: pinnedPms,
+                builder: (context, pins, _) {
+                  final pinned = pins.contains(m.id);
+                  return InkWell(
+                    onTap: () => togglePinPm(m.id),
+                    borderRadius: BorderRadius.circular(999.0),
+                    child: Container(
+                      width: 34.0,
+                      height: 34.0,
+                      decoration: BoxDecoration(
+                        color: pinned
+                            ? Color(0xFFFDEFE7)
+                            : Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: pinned
+                              ? Color(0xFFEB6834)
+                              : Color(0xFFE4E5E9),
+                        ),
+                      ),
+                      child: Icon(
+                        pinned
+                            ? Icons.push_pin_rounded
+                            : Icons.push_pin_outlined,
+                        size: 17.0,
+                        color: pinned
+                            ? Color(0xFFEB6834)
+                            : _kMuted,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
+      );
+    }
     return Row(
       children: [
         InkWell(
@@ -820,39 +950,11 @@ class _PmDetailPageWidgetState extends State<PmDetailPageWidget> {
       width: double.infinity,
       decoration: _card,
       padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
-      child: Row(
-        children: [
-          Icon(Icons.filter_list_rounded, size: 17.0, color: _kMuted),
-          SizedBox(width: 8.0),
-          ...chips.asMap().entries.map((e) {
-            final sel = _taskFilter == e.key;
-            return Padding(
-              padding: EdgeInsets.only(right: 6.0),
-              child: InkWell(
-                onTap: () => safeSetState(() => _taskFilter = e.key),
-                borderRadius: BorderRadius.circular(999.0),
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: 12.0, vertical: 6.0),
-                  decoration: BoxDecoration(
-                    color: sel ? _kInk : Color(0xFFF2F3F5),
-                    borderRadius: BorderRadius.circular(999.0),
-                  ),
-                  child: Text(
-                    e.value,
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                      color: sel ? Colors.white : Color(0xFF5B6069),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }),
-          Spacer(),
-          Container(
-            width: 240.0,
+      child: LayoutBuilder(
+        builder: (context, c) {
+          final narrow = c.maxWidth < 620.0;
+          final searchBox = Container(
+            width: narrow ? double.infinity : 240.0,
             height: 36.0,
             padding: EdgeInsets.symmetric(horizontal: 10.0),
             decoration: BoxDecoration(
@@ -880,8 +982,156 @@ class _PmDetailPageWidgetState extends State<PmDetailPageWidget> {
                 ),
               ],
             ),
-          ),
-        ],
+          );
+          final chipWidgets = <Widget>[
+            _filterDrop(
+              icon: Icons.calendar_today_rounded,
+              label: 'ปี',
+              value: '$_fYear',
+              options: ['2568', '2569'],
+              onSelect: (v) =>
+                  safeSetState(() => _fYear = int.parse(v)),
+            ),
+            SizedBox(width: 8.0),
+            _filterDrop(
+              icon: Icons.calendar_month_rounded,
+              label: 'เดือน',
+              value: _fMonth,
+              options: ['พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.'],
+              onSelect: (v) => safeSetState(() => _fMonth = v),
+            ),
+            SizedBox(width: 8.0),
+            _filterDrop(
+              icon: Icons.view_week_rounded,
+              label: 'สัปดาห์',
+              value: _fWeek,
+              options: [
+                for (var w = WeekInfo.weekNo - 3; w <= WeekInfo.weekNo; w++)
+                  'สัปดาห์ที่ $w',
+              ],
+              onSelect: (v) => safeSetState(() => _fWeek = v),
+            ),
+            SizedBox(width: 12.0),
+            Container(
+              width: 1.0,
+              height: 22.0,
+              color: Color(0xFFE4E5E9),
+            ),
+            SizedBox(width: 12.0),
+            Icon(Icons.filter_list_rounded, size: 17.0, color: _kMuted),
+            SizedBox(width: 8.0),
+            ...chips.asMap().entries.map((e) {
+            final sel = _taskFilter == e.key;
+            return Padding(
+              padding: EdgeInsets.only(right: 6.0),
+              child: InkWell(
+                onTap: () => safeSetState(() => _taskFilter = e.key),
+                borderRadius: BorderRadius.circular(999.0),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 6.0),
+                  decoration: BoxDecoration(
+                    color: sel ? _kInk : Color(0xFFF2F3F5),
+                    borderRadius: BorderRadius.circular(999.0),
+                  ),
+                  child: Text(
+                    e.value,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: sel ? Colors.white : Color(0xFF5B6069),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
+          ];
+          if (narrow) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: 0.0,
+                  runSpacing: 8.0,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: chipWidgets,
+                ),
+                SizedBox(height: 10.0),
+                searchBox,
+              ],
+            );
+          }
+          return Row(
+            children: [...chipWidgets, Spacer(), searchBox],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _filterDrop({
+    required IconData icon,
+    String? label,
+    required String value,
+    required List<String> options,
+    required ValueChanged<String> onSelect,
+  }) {
+    const blue = Color(0xFF1D4ED8);
+    return PopupMenuButton<String>(
+      onSelected: onSelect,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      itemBuilder: (context) => options
+          .map(
+            (o) => PopupMenuItem<String>(
+              value: o,
+              height: 38.0,
+              child: Text(
+                o,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight:
+                      o == value ? FontWeight.w700 : FontWeight.w500,
+                  color: o == value ? blue : _kInk,
+                ),
+              ),
+            ),
+          )
+          .toList(),
+      child: Container(
+        height: 36.0,
+        padding: EdgeInsets.symmetric(horizontal: 12.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10.0),
+          border: Border.all(color: Color(0xFFE4E5E9)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 15.0, color: blue),
+            if (label != null) ...[
+              SizedBox(width: 6.0),
+              Text(label,
+                  style: TextStyle(fontSize: 12.5, color: _kMuted)),
+            ],
+            SizedBox(width: 6.0),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 13.0,
+                fontWeight: FontWeight.w700,
+                color: blue,
+              ),
+            ),
+            SizedBox(width: 4.0),
+            Icon(Icons.keyboard_arrow_down_rounded,
+                size: 18.0, color: blue),
+          ],
+        ),
       ),
     );
   }

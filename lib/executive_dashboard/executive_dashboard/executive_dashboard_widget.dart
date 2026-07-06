@@ -535,18 +535,20 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
     return Container(
       decoration: _card,
       clipBehavior: Clip.antiAlias,
-      child: Stack(
+      child: LayoutBuilder(
+        builder: (context, c) => Stack(
         children: [
-          // ภาพ hero มุมขวาล่าง (ไฟล์ asset สลับด้านมาแล้ว)
-          Positioned(
-            right: 0.0,
-            bottom: -26.0, // จมลงใต้ขอบการ์ด ให้โต๊ะโดน crop
-            child: Image.asset(
-              'assets/images/pm-monitor-hero.png',
-              height: 148.0,
-              fit: BoxFit.contain,
+          // ภาพ hero มุมขวาล่าง — ซ่อนเมื่อการ์ดแคบ (ทับข้อความ)
+          if (c.maxWidth >= 460.0)
+            Positioned(
+              right: 0.0,
+              bottom: -26.0, // จมลงใต้ขอบการ์ด ให้โต๊ะโดน crop
+              child: Image.asset(
+                'assets/images/pm-monitor-hero.png',
+                height: 148.0,
+                fit: BoxFit.contain,
+              ),
             ),
-          ),
           Padding(
             padding: EdgeInsets.all(20.0),
             child: Column(
@@ -573,6 +575,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
             ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -825,25 +828,34 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
         children: [
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 20.0),
-            child: Row(
-            children: [
-              Expanded(
-                child: Text(
+            child: LayoutBuilder(
+              builder: (context, c) {
+                final title = Text(
                   'รายงานประจำสัปดาห์ · สัปดาห์ที่ ${WeekInfo.weekNo}',
                   style: TextStyle(
                     fontSize: 19.0,
                     fontWeight: FontWeight.w700,
                     color: _kInk,
                   ),
-                ),
-              ),
-              _searchBox(
-                width: 210.0,
-                hint: 'ค้นหา PM / งาน...',
-                value: _pipelineSearch,
-                onChanged: (v) => safeSetState(() => _pipelineSearch = v),
-              ),
-            ],
+                );
+                final narrow = c.maxWidth < 560.0;
+                final search = _searchBox(
+                  width: narrow ? double.infinity : 210.0,
+                  hint: 'ค้นหา PM / งาน...',
+                  value: _pipelineSearch,
+                  onChanged: (v) =>
+                      safeSetState(() => _pipelineSearch = v),
+                );
+                if (narrow) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [title, SizedBox(height: 10.0), search],
+                  );
+                }
+                return Row(
+                  children: [Expanded(child: title), search],
+                );
+              },
             ),
           ),
           SizedBox(height: 12.0),
@@ -895,18 +907,22 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
           // stat cards สถานะรายงาน — 4 ใบเต็มความกว้าง
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 20.0),
-            child: Row(
-              children: stages.asMap().entries.map((e) {
+            child: LayoutBuilder(
+              builder: (context, c) {
+                final twoCol = c.maxWidth < 640.0;
+                final itemW = (c.maxWidth - 10.0) / 2.0 - 0.5;
+                final cards = stages.asMap().entries.map((e) {
                 final sel = _stage == e.key;
                 final st = e.value;
-                return Expanded(
-                  child: InkWell(
+                final card = InkWell(
                     onTap: () => safeSetState(() => _stage = e.key),
                     borderRadius: BorderRadius.circular(14.0),
                     child: Container(
                       margin: EdgeInsets.only(
-                          right:
-                              e.key == stages.length - 1 ? 0.0 : 10.0),
+                          right: twoCol ||
+                                  e.key == stages.length - 1
+                              ? 0.0
+                              : 10.0),
                       padding: EdgeInsets.symmetric(
                           horizontal: 14.0, vertical: 12.0),
                       decoration: BoxDecoration(
@@ -957,9 +973,25 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
                         ],
                       ),
                     ),
-                  ),
+                  );
+                return (key: e.key, widget: card);
+              }).toList();
+                if (twoCol) {
+                  return Wrap(
+                    spacing: 10.0,
+                    runSpacing: 10.0,
+                    children: cards
+                        .map((e) =>
+                            SizedBox(width: itemW, child: e.widget))
+                        .toList(),
+                  );
+                }
+                return Row(
+                  children: cards
+                      .map((e) => Expanded(child: e.widget))
+                      .toList(),
                 );
-              }).toList(),
+              },
             ),
           ),
           SizedBox(height: 16.0),
