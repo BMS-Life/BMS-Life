@@ -815,6 +815,14 @@ List<PrevWeekTask> prevWeekTasks(ManagerInfo m) {
   return items;
 }
 
+/// สถานะรายงานแบบละเอียด (mock): sent | draft | none
+extension ManagerReportStatusX on ManagerInfo {
+  String get reportStatus {
+    if (!reportSubmitted) return 'none';
+    return const {'M5', 'M12'}.contains(id) ? 'draft' : 'sent';
+  }
+}
+
 /// PM ที่ถูกปักหมุด (จำเฉพาะ session) — ทุกหน้าฟังผ่าน ValueNotifier
 final ValueNotifier<Set<String>> pinnedPms = ValueNotifier<Set<String>>({});
 

@@ -37,7 +37,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
-  int _stage = 4; // index ของ stage ที่เลือกใน pipeline (default: รอตัดสินใจ)
+  int _stage = 0; // index ของ stat card ที่เลือก (default: ทั้งหมด)
   String _pipelineSearch = '';
   String _rateSearch = '';
   int _rateFilter = 0; // 0=ทั้งหมด 1=ส่งแล้ว 2=ยังไม่ส่ง
@@ -71,31 +71,56 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
     super.dispose();
   }
 
-  /* ---------- stage definitions ---------- */
+  /* ---------- stat cards (สถานะรายงานของ PM) ---------- */
 
-  List<({String label, int count, bool alert, List<WorkItem> items})>
-      get _stages {
-    List<WorkItem> by(bool Function(WorkItem) f) => works.where(f).toList();
-    final notStarted = by((w) => w.status == WorkStatus.notStarted);
-    final doing = by((w) =>
-        w.status == WorkStatus.inProgress || w.status == WorkStatus.review);
-    final delayed = by((w) => w.status == WorkStatus.delayed);
-    final decision = by((w) => w.decisionRequired);
-    final highRisk = by((w) => w.isHighRisk);
-    final done = by((w) => w.status == WorkStatus.done);
-    final pins = pinnedPms.value;
-    final pinnedWorks = by((w) {
-      final m = _pmOf(w.manager);
-      return m != null && pins.contains(m.id);
-    });
+  List<
+      ({
+        String label,
+        int count,
+        IconData icon,
+        Color color,
+        Color bg,
+        List<WorkItem> items
+      })> get _stages {
+    List<WorkItem> byPmStatus(String status) => works.where((w) {
+          final m = _pmOf(w.manager);
+          return m != null && m.reportStatus == status;
+        }).toList();
+    int pmCountOf(String status) =>
+        managers.where((m) => m.reportStatus == status).length;
     return [
-      (label: 'ปักหมุด', count: pins.length, alert: false, items: pinnedWorks),
-      (label: 'ยังไม่ได้ทำ', count: notStarted.length, alert: false, items: notStarted),
-      (label: 'กำลังทำ', count: doing.length, alert: false, items: doing),
-      (label: 'ล่าช้า', count: delayed.length, alert: false, items: delayed),
-      (label: 'รอตัดสินใจ', count: decision.length, alert: true, items: decision),
-      (label: 'เสี่ยงสูง', count: highRisk.length, alert: false, items: highRisk),
-      (label: 'เสร็จแล้ว', count: done.length, alert: false, items: done),
+      (
+        label: 'ทั้งหมด',
+        count: managers.length,
+        icon: Icons.groups_rounded,
+        color: Color(0xFF1D2A4D),
+        bg: Color(0xFFE9EBF2),
+        items: works,
+      ),
+      (
+        label: 'ส่งแล้ว',
+        count: pmCountOf('sent'),
+        icon: Icons.check_circle_rounded,
+        color: Color(0xFF14804A),
+        bg: Color(0xFFE3F5EB),
+        items: byPmStatus('sent'),
+      ),
+      (
+        label: 'ฉบับร่าง',
+        count: pmCountOf('draft'),
+        icon: Icons.edit_note_rounded,
+        color: Color(0xFFE8930C),
+        bg: Color(0xFFFDF3E3),
+        items: byPmStatus('draft'),
+      ),
+      (
+        label: 'ยังไม่ส่ง',
+        count: pmCountOf('none'),
+        icon: Icons.warning_amber_rounded,
+        color: Color(0xFFD03B3B),
+        bg: Color(0xFFFDEDED),
+        items: byPmStatus('none'),
+      ),
     ];
   }
 
@@ -867,74 +892,74 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
             ),
           ),
           SizedBox(height: 12.0),
-          // stage boxes — ยืดเต็มความกว้างการ์ด
+          // stat cards สถานะรายงาน — 4 ใบเต็มความกว้าง
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 20.0),
             child: Row(
-            children: stages.asMap().entries.map((e) {
-              final sel = _stage == e.key;
-              return Expanded(
-                child: InkWell(
-                  onTap: () => safeSetState(() => _stage = e.key),
-                  borderRadius: BorderRadius.circular(12.0),
-                  child: Container(
-                    margin: EdgeInsets.only(
-                        right: e.key == stages.length - 1 ? 0.0 : 8.0),
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 12.0, vertical: 10.0),
-                    decoration: BoxDecoration(
-                      color: sel ? Color(0xFFF0F4FE) : Colors.white,
-                      borderRadius: BorderRadius.circular(12.0),
-                      border: Border.all(
-                        color: sel ? _kBlue : Color(0xFFE4E5E9),
-                        width: sel ? 1.5 : 1.0,
+              children: stages.asMap().entries.map((e) {
+                final sel = _stage == e.key;
+                final st = e.value;
+                return Expanded(
+                  child: InkWell(
+                    onTap: () => safeSetState(() => _stage = e.key),
+                    borderRadius: BorderRadius.circular(14.0),
+                    child: Container(
+                      margin: EdgeInsets.only(
+                          right:
+                              e.key == stages.length - 1 ? 0.0 : 10.0),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 14.0, vertical: 12.0),
+                      decoration: BoxDecoration(
+                        color: sel ? st.bg : Colors.white,
+                        borderRadius: BorderRadius.circular(14.0),
+                        border: Border.all(
+                          color: sel ? st.color : Color(0xFFE4E5E9),
+                          width: sel ? 1.5 : 1.0,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 38.0,
+                            height: 38.0,
+                            decoration: BoxDecoration(
+                              color: sel ? Colors.white : st.bg,
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            child: Icon(st.icon,
+                                size: 20.0, color: st.color),
+                          ),
+                          SizedBox(width: 10.0),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${st.count}',
+                                  style: TextStyle(
+                                    fontSize: 18.0,
+                                    height: 1.1,
+                                    fontWeight: FontWeight.w800,
+                                    color: st.color,
+                                  ),
+                                ),
+                                Text(
+                                  st.label,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                      fontSize: 11.5, color: _kMuted),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              '${e.value.count}',
-                              style: TextStyle(
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w700,
-                                color: _kInk,
-                              ),
-                            ),
-                            if (e.value.label == 'ปักหมุด') ...[
-                              SizedBox(width: 4.0),
-                              Icon(Icons.push_pin_rounded,
-                                  size: 13.0, color: Color(0xFFEB6834)),
-                            ],
-                            if (e.value.alert) ...[
-                              SizedBox(width: 4.0),
-                              Container(
-                                width: 6.0,
-                                height: 6.0,
-                                decoration: BoxDecoration(
-                                  color: Color(0xFFE5484D),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                        SizedBox(height: 2.0),
-                        Text(
-                          e.value.label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              fontSize: 11.5, color: _kMuted),
-                        ),
-                      ],
-                    ),
                   ),
-                ),
-              );
-            }).toList(),
+                );
+              }).toList(),
             ),
           ),
           SizedBox(height: 16.0),
@@ -954,7 +979,14 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
   Widget _pipelineList(
     BuildContext context,
     List<String> rows,
-    ({String label, int count, bool alert, List<WorkItem> items}) selected,
+    ({
+      String label,
+      int count,
+      IconData icon,
+      Color color,
+      Color bg,
+      List<WorkItem> items
+    }) selected,
   ) {
     if (rows.isEmpty) {
       return Padding(
@@ -1226,13 +1258,21 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
                     SizedBox(width: 4.0),
                   ],
                   _pill(
-                    m.reportSubmitted ? 'ส่งแล้ว' : 'ยังไม่ส่ง',
-                    m.reportSubmitted
-                        ? Color(0xFF14804A)
-                        : Color(0xFFD03B3B),
-                    m.reportSubmitted
-                        ? Color(0xFFE3F5EB)
-                        : Color(0xFFFDEDED),
+                    switch (m.reportStatus) {
+                      'sent' => 'ส่งแล้ว',
+                      'draft' => 'ฉบับร่าง',
+                      _ => 'ยังไม่ส่ง',
+                    },
+                    switch (m.reportStatus) {
+                      'sent' => Color(0xFF14804A),
+                      'draft' => Color(0xFFE8930C),
+                      _ => Color(0xFFD03B3B),
+                    },
+                    switch (m.reportStatus) {
+                      'sent' => Color(0xFFE3F5EB),
+                      'draft' => Color(0xFFFDF3E3),
+                      _ => Color(0xFFFDEDED),
+                    },
                   ),
                   SizedBox(width: 6.0),
                   AnimatedRotation(
