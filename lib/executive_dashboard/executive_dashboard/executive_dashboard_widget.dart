@@ -563,11 +563,6 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
                     color: _kInk,
                   ),
                 ),
-                SizedBox(height: 4.0),
-                Text(
-                  'MD · สัปดาห์ที่ ${WeekInfo.weekNo} / ${WeekInfo.year}',
-                  style: TextStyle(fontSize: 13.0, color: _kMuted),
-                ),
                 Spacer(),
                 _pill('+$doneThisWeek เสร็จสัปดาห์นี้', Color(0xFF14804A),
                     Color(0xFFE3F5EB)),
