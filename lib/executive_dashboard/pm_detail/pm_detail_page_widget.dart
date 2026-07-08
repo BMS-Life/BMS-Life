@@ -848,13 +848,36 @@ class _PmDetailPageWidgetState extends State<PmDetailPageWidget> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Performance',
-                  style: TextStyle(
-                    fontSize: 15.0,
-                    fontWeight: FontWeight.w700,
-                    color: _kInk,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      'Performance',
+                      style: TextStyle(
+                        fontSize: 15.0,
+                        fontWeight: FontWeight.w700,
+                        color: _kInk,
+                      ),
+                    ),
+                    SizedBox(width: 6.0),
+                    Tooltip(
+                      triggerMode: TooltipTriggerMode.tap,
+                      showDuration: Duration(seconds: 8),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 12.0, vertical: 10.0),
+                      margin: EdgeInsets.symmetric(horizontal: 16.0),
+                      message: 'FYI — ที่มาของตัวเลข\n'
+                          '• คะแนน /100 = % งานที่เสร็จจากงานทั้งหมด'
+                          'ของสัปดาห์นี้ (เสร็จ ÷ ทั้งหมด × 100) — '
+                          'ตัวเดียวกับที่ใช้จัดอันดับ Top PM of the Week\n'
+                          '• แนวโน้มขึ้น/ลง = เทียบจำนวนงาน "เสร็จ" '
+                          'สัปดาห์นี้กับสัปดาห์ก่อน\n'
+                          '• กราฟ = จำนวนงานแยกสถานะ เสร็จ/กำลังทำ/ล่าช้า '
+                          'ย้อนหลังรายสัปดาห์ (สัปดาห์ล่าสุดคือข้อมูลจริง '
+                          'ที่เหลือเป็น mock)',
+                      child: Icon(Icons.info_outline_rounded,
+                          size: 16.0, color: _kMuted),
+                    ),
+                  ],
                 ),
                 SizedBox(height: 10.0),
                 Row(

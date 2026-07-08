@@ -101,7 +101,6 @@ class ManagerInfo {
     required this.name,
     required this.department,
     required this.reportSubmitted,
-    required this.score,
     required this.avatarUrl,
   });
 
@@ -109,8 +108,15 @@ class ManagerInfo {
   final String name;
   final String department;
   final bool reportSubmitted;
-  final int score;
   final String avatarUrl;
+
+  /// คะแนน Performance (0–100) = % งานที่เสร็จจากงานทั้งหมดของสัปดาห์นี้
+  int get score {
+    final ws = works.where((w) => w.manager == name).toList();
+    if (ws.isEmpty) return 0;
+    final done = ws.where((w) => w.status == WorkStatus.done).length;
+    return (done * 100 / ws.length).round();
+  }
 }
 
 /// ตำแหน่งงาน (mock) — deterministic จาก index ของ PM
@@ -143,140 +149,120 @@ const List<ManagerInfo> managers = [
       name: 'สมชาย วัฒนกุล',
       department: 'BMS Development',
       reportSubmitted: true,
-      score: 65,
       avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=faces'),
   ManagerInfo(
       id: 'M2',
       name: 'นุชนารถ ศรีสุวรรณ',
       department: 'Health Flow',
       reportSubmitted: true,
-      score: 78,
       avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=faces'),
   ManagerInfo(
       id: 'M3',
       name: 'มงคล ธาราทรัพย์',
       department: 'Smart Innovation',
       reportSubmitted: true,
-      score: 92,
       avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=faces'),
   ManagerInfo(
       id: 'M4',
       name: 'อรรถพล บุญประเสริฐ',
       department: 'งานอื่น ๆ',
       reportSubmitted: true,
-      score: 80,
       avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop&crop=faces'),
   ManagerInfo(
       id: 'M5',
       name: 'กิตติพงศ์ ศรีวิไล',
       department: 'BMS Development',
       reportSubmitted: true,
-      score: 74,
       avatarUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&h=150&fit=crop&crop=faces'),
   ManagerInfo(
       id: 'M6',
       name: 'วิภาดา จันทร์เพ็ญ',
       department: 'Health Flow',
       reportSubmitted: true,
-      score: 88,
       avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=faces'),
   ManagerInfo(
       id: 'M7',
       name: 'ธนวัฒน์ พงษ์พานิช',
       department: 'Smart Innovation',
       reportSubmitted: true,
-      score: 69,
       avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=faces'),
   ManagerInfo(
       id: 'M8',
       name: 'ศิริพร แก้วกาญจน์',
       department: 'BMS Development',
       reportSubmitted: true,
-      score: 91,
       avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=faces'),
   ManagerInfo(
       id: 'M9',
       name: 'ปรีชา สุขสวัสดิ์',
       department: 'งานอื่น ๆ',
       reportSubmitted: false,
-      score: 58,
       avatarUrl: 'https://images.unsplash.com/photo-1552058544-f2b08422138a?w=150&h=150&fit=crop&crop=faces'),
   ManagerInfo(
       id: 'M10',
       name: 'อัญชลี วงศ์วานิช',
       department: 'Health Flow',
       reportSubmitted: true,
-      score: 83,
       avatarUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=faces'),
   ManagerInfo(
       id: 'M11',
       name: 'ณัฐพล ตั้งตระกูล',
       department: 'BMS Development',
       reportSubmitted: true,
-      score: 77,
       avatarUrl: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=150&h=150&fit=crop&crop=faces'),
   ManagerInfo(
       id: 'M12',
       name: 'พิมพ์ชนก อินทรวงศ์',
       department: 'Smart Innovation',
       reportSubmitted: true,
-      score: 95,
       avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=faces'),
   ManagerInfo(
       id: 'M13',
       name: 'วีระชัย มั่นคงดี',
       department: 'งานอื่น ๆ',
       reportSubmitted: true,
-      score: 62,
       avatarUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=faces'),
   ManagerInfo(
       id: 'M14',
       name: 'สุภาวดี ชัยมงคล',
       department: 'Health Flow',
       reportSubmitted: false,
-      score: 86,
       avatarUrl: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=150&h=150&fit=crop&crop=faces'),
   ManagerInfo(
       id: 'M15',
       name: 'ชัยวัฒน์ ประดิษฐ์ผล',
       department: 'BMS Development',
       reportSubmitted: true,
-      score: 71,
       avatarUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop&crop=faces'),
   ManagerInfo(
       id: 'M16',
       name: 'กมลชนก บุตรดี',
       department: 'Smart Innovation',
       reportSubmitted: true,
-      score: 90,
       avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&h=150&fit=crop&crop=faces'),
   ManagerInfo(
       id: 'M17',
       name: 'ภาณุพงศ์ เรืองศรี',
       department: 'งานอื่น ๆ',
       reportSubmitted: false,
-      score: 55,
       avatarUrl: 'https://images.unsplash.com/photo-1500259571355-332da5cb07aa?w=150&h=150&fit=crop&crop=faces'),
   ManagerInfo(
       id: 'M18',
       name: 'ดวงกมล สายสุวรรณ',
       department: 'Health Flow',
       reportSubmitted: true,
-      score: 82,
       avatarUrl: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=150&h=150&fit=crop&crop=faces'),
   ManagerInfo(
       id: 'M19',
       name: 'สิทธิชัย โชติช่วง',
       department: 'BMS Development',
       reportSubmitted: true,
-      score: 68,
       avatarUrl: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=150&h=150&fit=crop&crop=faces'),
   ManagerInfo(
       id: 'M20',
       name: 'จารุวรรณ ทองใบ',
       department: 'งานอื่น ๆ',
       reportSubmitted: true,
-      score: 79,
       avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop&crop=faces'),
 ];
 

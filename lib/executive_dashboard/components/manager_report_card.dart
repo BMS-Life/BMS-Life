@@ -14,17 +14,16 @@ class ManagerReportCard extends StatelessWidget {
 
   final ManagerInfo manager;
 
-  List<WorkItem> get _myWorks =>
-      works.where((w) => w.manager == manager.name).toList()
-        ..sort(
-            (a, b) => (b.needsAttention ? 1 : 0) - (a.needsAttention ? 1 : 0));
+  List<WorkItem> get _myWorks => works
+      .where((w) => w.manager == manager.name)
+      .toList()
+    ..sort((a, b) => (b.needsAttention ? 1 : 0) - (a.needsAttention ? 1 : 0));
 
   // สีสรุปสถานะของ PM: แดง = มีงานค้าง/ล่าช้า, เหลือง = มีเสี่ยงสูง, เขียว = ปกติ
   Color get _statusColor {
     final ws = _myWorks;
     if (ws.any((w) =>
-        w.status == WorkStatus.notStarted ||
-        w.status == WorkStatus.delayed)) {
+        w.status == WorkStatus.notStarted || w.status == WorkStatus.delayed)) {
       return Color(0xFFD03B3B);
     }
     if (ws.any((w) => w.isHighRisk)) return Color(0xFFEDA100);
@@ -118,37 +117,43 @@ class ManagerReportCard extends StatelessWidget {
                     ),
                   ),
                   // chip คะแนน (ตำแหน่งเดียวกับ Days Left ใน reference)
-                  Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                    decoration: BoxDecoration(
-                      color: _scoreColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '${manager.score}',
-                          style: theme.titleMedium.override(
-                            fontFamily: theme.titleMediumFamily,
-                            color: _scoreColor,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.0,
-                            useGoogleFonts: !theme.titleMediumIsCustom,
+                  Tooltip(
+                    triggerMode: TooltipTriggerMode.tap,
+                    showDuration: Duration(seconds: 6),
+                    message: 'คะแนน = % งานที่เสร็จจากงานทั้งหมด'
+                        'ของสัปดาห์นี้ (เสร็จ ÷ ทั้งหมด × 100)',
+                    child: Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                      decoration: BoxDecoration(
+                        color: _scoreColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '${manager.score}',
+                            style: theme.titleMedium.override(
+                              fontFamily: theme.titleMediumFamily,
+                              color: _scoreColor,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.0,
+                              useGoogleFonts: !theme.titleMediumIsCustom,
+                            ),
                           ),
-                        ),
-                        Text(
-                          'คะแนน',
-                          style: theme.bodySmall.override(
-                            fontFamily: theme.bodySmallFamily,
-                            color: _scoreColor,
-                            fontSize: 10.0,
-                            letterSpacing: 0.0,
-                            useGoogleFonts: !theme.bodySmallIsCustom,
+                          Text(
+                            'คะแนน',
+                            style: theme.bodySmall.override(
+                              fontFamily: theme.bodySmallFamily,
+                              color: _scoreColor,
+                              fontSize: 10.0,
+                              letterSpacing: 0.0,
+                              useGoogleFonts: !theme.bodySmallIsCustom,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ],

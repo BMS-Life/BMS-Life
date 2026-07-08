@@ -144,112 +144,124 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
       child: Stack(
         children: [
           Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (showSidebar)
-            wrapWithModel(
-              model: _model.sidebarModel,
-              updateCallback: () => safeSetState(() {}),
-              child: SidebarWidget(),
-            ),
-          Expanded(
-            child: Column(
-              children: [
-                if (!showSidebar) _buildMobileAppBar(context),
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final w = constraints.maxWidth;
-                      final wide = w >= 1080.0;
-                      final mid = w >= 720.0;
-                      final topRow = mid
-                          ? IntrinsicHeight(
-                              child: Row(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (showSidebar)
+                wrapWithModel(
+                  model: _model.sidebarModel,
+                  updateCallback: () => safeSetState(() {}),
+                  child: SidebarWidget(),
+                ),
+              Expanded(
+                child: Column(
+                  children: [
+                    if (!showSidebar) _buildMobileAppBar(context),
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final w = constraints.maxWidth;
+                          final wide = w >= 1080.0;
+                          final mid = w >= 720.0;
+                          // ความกว้างการ์ด greeting: แถวบนแบ่ง 5/11 ของพื้นที่
+                          // (หัก padding 32 + ช่องว่าง 14x2) — ใช้ตัดสินโชว์ hero
+                          final greetW =
+                              mid ? (w - 32.0 - 28.0) * 5.0 / 11.0 : w - 32.0;
+                          final showHero = greetW >= 460.0;
+                          final topRow = mid
+                              // minHeight กันเศษ px จาก intrinsic ของ font ไทย
+                              // (ascent สระ/วรรณยุกต์ทำให้สูงจริงเกินค่าคำนวณ)
+                              ? ConstrainedBox(
+                                  constraints: BoxConstraints(minHeight: 176.0),
+                                  child: IntrinsicHeight(
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        Expanded(
+                                            flex: 5,
+                                            child: _greetingCard(context,
+                                                showHero: showHero)),
+                                        SizedBox(width: 14.0),
+                                        Expanded(
+                                            flex: 3,
+                                            child: _attentionCard(context)),
+                                        SizedBox(width: 14.0),
+                                        Expanded(
+                                            flex: 3,
+                                            child: _queueCard(context)),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              : null;
+                          if (wide) {
+                            // จอกว้าง: pipeline ยืดเต็มความสูงที่เหลือของจอ
+                            return Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  topRow!,
+                                  SizedBox(height: 14.0),
                                   Expanded(
-                                      flex: 5,
-                                      child: _greetingCard(context)),
-                                  SizedBox(width: 14.0),
-                                  Expanded(
-                                      flex: 3,
-                                      child: _attentionCard(context)),
-                                  SizedBox(width: 14.0),
-                                  Expanded(
-                                      flex: 3, child: _queueCard(context)),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        Expanded(
+                                            child: _pipelineCard(context,
+                                                fill: true)),
+                                        SizedBox(width: 14.0),
+                                        SizedBox(
+                                          width: 300.0,
+                                          child: SingleChildScrollView(
+                                            child: Column(
+                                              children: [
+                                                TopPerformers(compact: true),
+                                                SizedBox(height: 14.0),
+                                                _reportRateCard(context),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               ),
-                            )
-                          : null;
-                      if (wide) {
-                        // จอกว้าง: pipeline ยืดเต็มความสูงที่เหลือของจอ
-                        return Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              topRow!,
-                              SizedBox(height: 14.0),
-                              Expanded(
-                                child: Row(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    Expanded(
-                                        child: _pipelineCard(context,
-                                            fill: true)),
-                                    SizedBox(width: 14.0),
-                                    SizedBox(
-                                      width: 300.0,
-                                      child: SingleChildScrollView(
-                                        child: Column(
-                                          children: [
-                                            TopPerformers(compact: true),
-                                            SizedBox(height: 14.0),
-                                            _reportRateCard(context),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-                      return SingleChildScrollView(
-                        padding: EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (topRow != null)
-                              topRow
-                            else ...[
-                              _greetingCard(context),
-                              SizedBox(height: 14.0),
-                              _attentionCard(context),
-                              SizedBox(height: 14.0),
-                              _queueCard(context),
-                            ],
-                            SizedBox(height: 14.0),
-                            _pipelineCard(context),
-                            SizedBox(height: 14.0),
-                            TopPerformers(compact: true),
-                            SizedBox(height: 14.0),
-                            _reportRateCard(context),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+                            );
+                          }
+                          return SingleChildScrollView(
+                            padding: EdgeInsets.all(16.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (topRow != null)
+                                  topRow
+                                else ...[
+                                  _greetingCard(context, showHero: showHero),
+                                  SizedBox(height: 14.0),
+                                  _attentionCard(context),
+                                  SizedBox(height: 14.0),
+                                  _queueCard(context),
+                                ],
+                                SizedBox(height: 14.0),
+                                _pipelineCard(context),
+                                SizedBox(height: 14.0),
+                                TopPerformers(compact: true),
+                                SizedBox(height: 14.0),
+                                _reportRateCard(context),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
           ),
           // FAB ปักหมุด PM
           Positioned(
@@ -337,8 +349,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
                         valueListenable: pinnedPms,
                         builder: (context, pins, _) => Text(
                           'ปักไว้ ${pins.length} คน',
-                          style:
-                              TextStyle(fontSize: 12.5, color: _kMuted),
+                          style: TextStyle(fontSize: 12.5, color: _kMuted),
                         ),
                       ),
                     ],
@@ -364,8 +375,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
                           },
                           borderRadius: BorderRadius.circular(10.0),
                           child: Padding(
-                            padding:
-                                EdgeInsets.symmetric(vertical: 8.0),
+                            padding: EdgeInsets.symmetric(vertical: 8.0),
                             child: Row(
                               children: [
                                 PmAvatar(
@@ -389,8 +399,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
                                       Text(
                                         m.position,
                                         style: TextStyle(
-                                            fontSize: 11.5,
-                                            color: _kMuted),
+                                            fontSize: 11.5, color: _kMuted),
                                       ),
                                     ],
                                   ),
@@ -468,8 +477,8 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
         ),
         child: Text(
           label,
-          style: TextStyle(
-              fontSize: 12.5, fontWeight: FontWeight.w600, color: fg),
+          style:
+              TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: fg),
         ),
       );
 
@@ -529,17 +538,15 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
 
   /* ---------- card 1: greeting ---------- */
 
-  Widget _greetingCard(BuildContext context) {
-    final doneThisWeek =
-        works.where((w) => w.status == WorkStatus.done).length;
+  Widget _greetingCard(BuildContext context, {required bool showHero}) {
+    final doneThisWeek = works.where((w) => w.status == WorkStatus.done).length;
     return Container(
       decoration: _card,
       clipBehavior: Clip.antiAlias,
-      child: LayoutBuilder(
-        builder: (context, c) => Stack(
+      child: Stack(
         children: [
           // ภาพ hero มุมขวาล่าง — ซ่อนเมื่อการ์ดแคบ (ทับข้อความ)
-          if (c.maxWidth >= 460.0)
+          if (showHero)
             Positioned(
               right: 0.0,
               bottom: -26.0, // จมลงใต้ขอบการ์ด ให้โต๊ะโดน crop
@@ -570,7 +577,6 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
             ),
           ),
         ],
-        ),
       ),
     );
   }
@@ -589,41 +595,40 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
       onTap: () => _openAttentionSheet(context, pms),
       borderRadius: BorderRadius.circular(_kCardRadius),
       child: Container(
-      decoration: _card,
-      padding: EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  '${pms.length} PM\nต้องติดตาม',
-                  style: TextStyle(
-                    fontSize: 19.0,
-                    height: 1.25,
-                    fontWeight: FontWeight.w700,
-                    color: _kInk,
+        decoration: _card,
+        padding: EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    '${pms.length} PM\nต้องติดตาม',
+                    style: TextStyle(
+                      fontSize: 19.0,
+                      height: 1.25,
+                      fontWeight: FontWeight.w700,
+                      color: _kInk,
+                    ),
                   ),
                 ),
-              ),
-              Icon(Icons.chevron_right_rounded,
-                  size: 22.0, color: _kMuted),
-            ],
-          ),
-          Spacer(),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              _pill('งานล่าช้า ${delayedWorks.length} งาน',
-                  Color(0xFFD03B3B), Color(0xFFFDEDED)),
-              Spacer(),
-              _avatarStack(pms),
-            ],
-          ),
-        ],
-      ),
+                Icon(Icons.chevron_right_rounded, size: 22.0, color: _kMuted),
+              ],
+            ),
+            Spacer(),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                _pill('งานล่าช้า ${delayedWorks.length} งาน', Color(0xFFD03B3B),
+                    Color(0xFFFDEDED)),
+                Spacer(),
+                _avatarStack(pms),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -709,8 +714,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
                             SizedBox(width: 10.0),
                             Expanded(
                               child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     m.name,
@@ -728,8 +732,8 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
                                 ],
                               ),
                             ),
-                            _pill('ล่าช้า $delayed งาน',
-                                Color(0xFFD03B3B), Color(0xFFFDEDED)),
+                            _pill('ล่าช้า $delayed งาน', Color(0xFFD03B3B),
+                                Color(0xFFFDEDED)),
                             SizedBox(width: 6.0),
                             Icon(Icons.chevron_right_rounded,
                                 size: 18.0, color: _kMuted),
@@ -750,8 +754,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
   /* ---------- card 3: report queue ---------- */
 
   Widget _queueCard(BuildContext context) {
-    final pending =
-        managers.where((m) => !m.reportSubmitted).toList();
+    final pending = managers.where((m) => !m.reportSubmitted).toList();
     return Container(
       decoration: _card,
       padding: EdgeInsets.all(20.0),
@@ -838,8 +841,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
                   width: narrow ? double.infinity : 210.0,
                   hint: 'ค้นหา PM / งาน...',
                   value: _pipelineSearch,
-                  onChanged: (v) =>
-                      safeSetState(() => _pipelineSearch = v),
+                  onChanged: (v) => safeSetState(() => _pipelineSearch = v),
                 );
                 if (narrow) {
                   return Column(
@@ -866,8 +868,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
                   label: 'ปี',
                   value: '$_fYear',
                   options: ['2568', '2569'],
-                  onSelect: (v) =>
-                      safeSetState(() => _fYear = int.parse(v)),
+                  onSelect: (v) => safeSetState(() => _fYear = int.parse(v)),
                 ),
                 _filterDrop(
                   icon: Icons.calendar_month_rounded,
@@ -907,15 +908,14 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
                 final twoCol = c.maxWidth < 640.0;
                 final itemW = (c.maxWidth - 10.0) / 2.0 - 0.5;
                 final cards = stages.asMap().entries.map((e) {
-                final sel = _stage == e.key;
-                final st = e.value;
-                final card = InkWell(
+                  final sel = _stage == e.key;
+                  final st = e.value;
+                  final card = InkWell(
                     onTap: () => safeSetState(() => _stage = e.key),
                     borderRadius: BorderRadius.circular(14.0),
                     child: Container(
                       margin: EdgeInsets.only(
-                          right: twoCol ||
-                                  e.key == stages.length - 1
+                          right: twoCol || e.key == stages.length - 1
                               ? 0.0
                               : 10.0),
                       padding: EdgeInsets.symmetric(
@@ -937,14 +937,12 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
                               color: sel ? Colors.white : st.bg,
                               borderRadius: BorderRadius.circular(10.0),
                             ),
-                            child: Icon(st.icon,
-                                size: 20.0, color: st.color),
+                            child: Icon(st.icon, size: 20.0, color: st.color),
                           ),
                           SizedBox(width: 10.0),
                           Expanded(
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   '${st.count}',
@@ -959,8 +957,8 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
                                   st.label,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                      fontSize: 11.5, color: _kMuted),
+                                  style:
+                                      TextStyle(fontSize: 11.5, color: _kMuted),
                                 ),
                               ],
                             ),
@@ -969,22 +967,20 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
                       ),
                     ),
                   );
-                return (key: e.key, widget: card);
-              }).toList();
+                  return (key: e.key, widget: card);
+                }).toList();
                 if (twoCol) {
                   return Wrap(
                     spacing: 10.0,
                     runSpacing: 10.0,
                     children: cards
-                        .map((e) =>
-                            SizedBox(width: itemW, child: e.widget))
+                        .map((e) => SizedBox(width: itemW, child: e.widget))
                         .toList(),
                   );
                 }
                 return Row(
-                  children: cards
-                      .map((e) => Expanded(child: e.widget))
-                      .toList(),
+                  children:
+                      cards.map((e) => Expanded(child: e.widget)).toList(),
                 );
               },
             ),
@@ -996,8 +992,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
             Expanded(child: _pipelineList(context, rows, selected))
           else
             SizedBox(
-                height: 560.0,
-                child: _pipelineList(context, rows, selected)),
+                height: 560.0, child: _pipelineList(context, rows, selected)),
         ],
       ),
     );
@@ -1037,9 +1032,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
               child: _pipelineRow(
                 context,
                 m,
-                selected.items
-                    .where((w) => w.manager == rows[i])
-                    .toList(),
+                selected.items.where((w) => w.manager == rows[i]).toList(),
               ),
             );
           },
@@ -1077,8 +1070,8 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
                 ignoring: !canScroll,
                 child: Material(
                   color: Colors.white,
-                  shape: CircleBorder(
-                      side: BorderSide(color: Color(0xFFE4E5E9))),
+                  shape:
+                      CircleBorder(side: BorderSide(color: Color(0xFFE4E5E9))),
                   elevation: 3.0,
                   shadowColor: Colors.black26,
                   child: InkWell(
@@ -1138,8 +1131,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
                 o,
                 style: TextStyle(
                   fontSize: 13.5,
-                  fontWeight:
-                      o == value ? FontWeight.w700 : FontWeight.w500,
+                  fontWeight: o == value ? FontWeight.w700 : FontWeight.w500,
                   color: o == value ? blue : _kInk,
                 ),
               ),
@@ -1160,8 +1152,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
             Icon(icon, size: 15.0, color: blue),
             if (label != null) ...[
               SizedBox(width: 6.0),
-              Text(label,
-                  style: TextStyle(fontSize: 12.5, color: _kMuted)),
+              Text(label, style: TextStyle(fontSize: 12.5, color: _kMuted)),
             ],
             SizedBox(width: 6.0),
             Text(
@@ -1173,8 +1164,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
               ),
             ),
             SizedBox(width: 4.0),
-            Icon(Icons.keyboard_arrow_down_rounded,
-                size: 18.0, color: blue),
+            Icon(Icons.keyboard_arrow_down_rounded, size: 18.0, color: blue),
           ],
         ),
       ),
@@ -1200,8 +1190,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(fontSize: 12.5, color: _kMuted),
-          prefixIcon:
-              Icon(Icons.search_rounded, size: 17.0, color: _kMuted),
+          prefixIcon: Icon(Icons.search_rounded, size: 17.0, color: _kMuted),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(vertical: 8.0),
         ),
@@ -1218,8 +1207,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
     final done = ws.where((w) => w.status == WorkStatus.done).length;
     final doing = ws
         .where((w) =>
-            w.status == WorkStatus.inProgress ||
-            w.status == WorkStatus.review)
+            w.status == WorkStatus.inProgress || w.status == WorkStatus.review)
         .length;
     final rest = ws.length - done - doing;
     final avg = ws.isEmpty
@@ -1243,170 +1231,168 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
         child: Stack(
           children: [
             Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // header
-          InkWell(
-            onTap: () => safeSetState(() => isOpen
-                ? _collapsedPms.add(m.name)
-                : _collapsedPms.remove(m.name)),
-            borderRadius: BorderRadius.circular(14.0),
-            child: Padding(
-              padding: EdgeInsets.all(12.0),
-              child: Row(
-                children: [
-                  PmAvatar(name: m.name, avatarUrl: m.avatarUrl, size: 36.0),
-                  SizedBox(width: 10.0),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          m.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w700,
-                            color: _kInk,
-                          ),
-                        ),
-                        Text(
-                          m.position,
-                          style:
-                              TextStyle(fontSize: 12.0, color: _kMuted),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (pinnedPms.value.contains(m.id)) ...[
-                    Icon(Icons.push_pin_rounded,
-                        size: 15.0, color: Color(0xFFEB6834)),
-                    SizedBox(width: 4.0),
-                  ],
-                  _pill(
-                    switch (m.reportStatus) {
-                      'sent' => 'ส่งแล้ว',
-                      'draft' => 'ฉบับร่าง',
-                      _ => 'ยังไม่ส่ง',
-                    },
-                    switch (m.reportStatus) {
-                      'sent' => Color(0xFF14804A),
-                      'draft' => Color(0xFFE8930C),
-                      _ => Color(0xFFD03B3B),
-                    },
-                    switch (m.reportStatus) {
-                      'sent' => Color(0xFFE3F5EB),
-                      'draft' => Color(0xFFFDF3E3),
-                      _ => Color(0xFFFDEDED),
-                    },
-                  ),
-                  SizedBox(width: 6.0),
-                  AnimatedRotation(
-                    turns: isOpen ? 0.5 : 0.0,
-                    duration: Duration(milliseconds: 180),
-                    child: Icon(Icons.keyboard_arrow_up_rounded,
-                        size: 20.0, color: _kMuted),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // stats + ring + stacked bar
-          Padding(
-            padding: EdgeInsets.fromLTRB(12.0, 0.0, 12.0, 12.0),
-            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    _miniStat('$done', 'เสร็จ', Color(0xFF14A44D)),
-                    _statDivider(),
-                    _miniStat('$doing', 'กำลังทำ', _kBlue),
-                    _statDivider(),
-                    _miniStat('$rest', 'ยังไม่เริ่ม', Color(0xFFE8930C)),
-                    Spacer(),
-                    Column(
+                // header
+                InkWell(
+                  onTap: () => safeSetState(() => isOpen
+                      ? _collapsedPms.add(m.name)
+                      : _collapsedPms.remove(m.name)),
+                  borderRadius: BorderRadius.circular(14.0),
+                  child: Padding(
+                    padding: EdgeInsets.all(12.0),
+                    child: Row(
                       children: [
-                        SizedBox(
-                          width: 48.0,
-                          height: 48.0,
-                          child: CustomPaint(
-                            painter: _RingPainter(avg / 100.0,
-                                color: Color(0xFF14A44D)),
-                            child: Center(
-                              child: Text(
-                                '$avg%',
+                        PmAvatar(
+                            name: m.name, avatarUrl: m.avatarUrl, size: 36.0),
+                        SizedBox(width: 10.0),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                m.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  fontSize: 12.0,
-                                  fontWeight: FontWeight.w800,
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w700,
                                   color: _kInk,
                                 ),
                               ),
-                            ),
+                              Text(
+                                m.position,
+                                style:
+                                    TextStyle(fontSize: 12.0, color: _kMuted),
+                              ),
+                            ],
                           ),
                         ),
-                        SizedBox(height: 2.0),
-                        Text('คืบหน้ารวม',
-                            style: TextStyle(
-                                fontSize: 10.0, color: _kMuted)),
-                      ],
-                    ),
-                  ],
-                ),
-                SizedBox(height: 4.0),
-                Text(
-                  'ทั้งหมด ${ws.length} งานในสัปดาห์นี้',
-                  style: TextStyle(fontSize: 11.5, color: _kMuted),
-                ),
-                SizedBox(height: 6.0),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(999.0),
-                  child: SizedBox(
-                    height: 8.0,
-                    child: Row(
-                      children: [
-                        if (done > 0)
-                          Expanded(
-                              flex: done,
-                              child:
-                                  Container(color: Color(0xFF14A44D))),
-                        if (doing > 0)
-                          Expanded(
-                              flex: doing,
-                              child: Container(color: _kBlue)),
-                        if (rest > 0)
-                          Expanded(
-                              flex: rest,
-                              child:
-                                  Container(color: Color(0xFFE9EAEE))),
-                        if (ws.isEmpty)
-                          Expanded(
-                              child:
-                                  Container(color: Color(0xFFE9EAEE))),
+                        if (pinnedPms.value.contains(m.id)) ...[
+                          Icon(Icons.push_pin_rounded,
+                              size: 15.0, color: Color(0xFFEB6834)),
+                          SizedBox(width: 4.0),
+                        ],
+                        _pill(
+                          switch (m.reportStatus) {
+                            'sent' => 'ส่งแล้ว',
+                            'draft' => 'ฉบับร่าง',
+                            _ => 'ยังไม่ส่ง',
+                          },
+                          switch (m.reportStatus) {
+                            'sent' => Color(0xFF14804A),
+                            'draft' => Color(0xFFE8930C),
+                            _ => Color(0xFFD03B3B),
+                          },
+                          switch (m.reportStatus) {
+                            'sent' => Color(0xFFE3F5EB),
+                            'draft' => Color(0xFFFDF3E3),
+                            _ => Color(0xFFFDEDED),
+                          },
+                        ),
+                        SizedBox(width: 6.0),
+                        AnimatedRotation(
+                          turns: isOpen ? 0.5 : 0.0,
+                          duration: Duration(milliseconds: 180),
+                          child: Icon(Icons.keyboard_arrow_up_rounded,
+                              size: 20.0, color: _kMuted),
+                        ),
                       ],
                     ),
                   ),
                 ),
+                // stats + ring + stacked bar
+                Padding(
+                  padding: EdgeInsets.fromLTRB(12.0, 0.0, 12.0, 12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          _miniStat('$done', 'เสร็จ', Color(0xFF14A44D)),
+                          _statDivider(),
+                          _miniStat('$doing', 'กำลังทำ', _kBlue),
+                          _statDivider(),
+                          _miniStat('$rest', 'ยังไม่เริ่ม', Color(0xFFE8930C)),
+                          Spacer(),
+                          Column(
+                            children: [
+                              SizedBox(
+                                width: 48.0,
+                                height: 48.0,
+                                child: CustomPaint(
+                                  painter: _RingPainter(avg / 100.0,
+                                      color: Color(0xFF14A44D)),
+                                  child: Center(
+                                    child: Text(
+                                      '$avg%',
+                                      style: TextStyle(
+                                        fontSize: 12.0,
+                                        fontWeight: FontWeight.w800,
+                                        color: _kInk,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 2.0),
+                              Text('คืบหน้ารวม',
+                                  style: TextStyle(
+                                      fontSize: 10.0, color: _kMuted)),
+                            ],
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 4.0),
+                      Text(
+                        'ทั้งหมด ${ws.length} งานในสัปดาห์นี้',
+                        style: TextStyle(fontSize: 11.5, color: _kMuted),
+                      ),
+                      SizedBox(height: 6.0),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(999.0),
+                        child: SizedBox(
+                          height: 8.0,
+                          child: Row(
+                            children: [
+                              if (done > 0)
+                                Expanded(
+                                    flex: done,
+                                    child: Container(color: Color(0xFF14A44D))),
+                              if (doing > 0)
+                                Expanded(
+                                    flex: doing,
+                                    child: Container(color: _kBlue)),
+                              if (rest > 0)
+                                Expanded(
+                                    flex: rest,
+                                    child: Container(color: Color(0xFFE9EAEE))),
+                              if (ws.isEmpty)
+                                Expanded(
+                                    child: Container(color: Color(0xFFE9EAEE))),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isOpen) ...[
+                  Divider(height: 1.0, color: Color(0xFFE4E5E9)),
+                  // tab สัปดาห์ที่แล้ว | สัปดาห์นี้
+                  _weekTabs(context, m, thisWeek),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.fromLTRB(12.0, 8.0, 12.0, 12.0),
+                      child: thisWeek
+                          ? _weekGroups(context, m, thisWeek: true)
+                          : _weekGroups(context, m, thisWeek: false),
+                    ),
+                  ),
+                ] else
+                  Spacer(),
               ],
-            ),
-          ),
-          if (isOpen) ...[
-            Divider(height: 1.0, color: Color(0xFFE4E5E9)),
-            // tab สัปดาห์ที่แล้ว | สัปดาห์นี้
-            _weekTabs(context, m, thisWeek),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(12.0, 8.0, 12.0, 12.0),
-                child: thisWeek
-                    ? _weekGroups(context, m, thisWeek: true)
-                    : _weekGroups(context, m, thisWeek: false),
-              ),
-            ),
-          ] else
-            Spacer(),
-            ],
             ),
             // ปุ่มดูรายละเอียด โผล่ตอน hover ที่ bottom ของการ์ด
             Positioned(
@@ -1471,48 +1457,48 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
 
   Widget _weekTabs(BuildContext context, ManagerInfo m, bool thisWeek) {
     return Row(
-              children: [true, false].map((tw) {
-                final labels = tw
-                    ? (Icons.calendar_month_rounded, 'สัปดาห์นี้')
-                    : (Icons.history_rounded, 'สัปดาห์ที่แล้ว');
-                final sel = thisWeek == tw;
-                return Expanded(
-                  child: InkWell(
-                    onTap: () =>
-                        safeSetState(() => _pmWeekThis[m.name] = tw),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 10.0),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: sel ? _kBlue : Colors.transparent,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(labels.$1,
-                              size: 15.0,
-                              color: sel ? _kBlue : _kMuted),
-                          SizedBox(width: 5.0),
-                          Text(
-                            labels.$2,
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: sel
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
-                              color: sel ? _kBlue : _kMuted,
-                            ),
-                          ),
-                        ],
+      children: [true, false]
+          .map((tw) {
+            final labels = tw
+                ? (Icons.calendar_month_rounded, 'สัปดาห์นี้')
+                : (Icons.history_rounded, 'สัปดาห์ที่แล้ว');
+            final sel = thisWeek == tw;
+            return Expanded(
+              child: InkWell(
+                onTap: () => safeSetState(() => _pmWeekThis[m.name] = tw),
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: 10.0),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: sel ? _kBlue : Colors.transparent,
+                        width: 2.0,
                       ),
                     ),
                   ),
-                );
-              }).toList().reversed.toList(),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(labels.$1,
+                          size: 15.0, color: sel ? _kBlue : _kMuted),
+                      SizedBox(width: 5.0),
+                      Text(
+                        labels.$2,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: sel ? FontWeight.w700 : FontWeight.w500,
+                          color: sel ? _kBlue : _kMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          })
+          .toList()
+          .reversed
+          .toList(),
     );
   }
 
@@ -1550,10 +1536,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
     if (thisWeek) {
       final ws = works.where((w) => w.manager == m.name).toList();
       (String, WorkItem?, bool) e(WorkItem w) => (w.title, w, false);
-      done = ws
-          .where((w) => w.status == WorkStatus.done)
-          .map(e)
-          .toList();
+      done = ws.where((w) => w.status == WorkStatus.done).map(e).toList();
       doing = ws
           .where((w) =>
               w.status == WorkStatus.inProgress ||
@@ -1580,13 +1563,13 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
 
     return Column(
       children: [
-        _cardGroup(context, m, '$prefix-done', 'เสร็จแล้ว',
-            Color(0xFF14A44D), done,
+        _cardGroup(
+            context, m, '$prefix-done', 'เสร็จแล้ว', Color(0xFF14A44D), done,
             strike: true),
-        _cardGroup(context, m, '$prefix-doing', 'กำลังดำเนินการ', _kBlue,
-            doing),
-        _cardGroup(context, m, '$prefix-todo', 'ยังไม่ได้ทำ',
-            Color(0xFFE8930C), todo),
+        _cardGroup(
+            context, m, '$prefix-doing', 'กำลังดำเนินการ', _kBlue, doing),
+        _cardGroup(
+            context, m, '$prefix-todo', 'ยังไม่ได้ทำ', Color(0xFFE8930C), todo),
       ],
     );
   }
@@ -1610,8 +1593,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
           borderRadius: BorderRadius.circular(8.0),
           child: Container(
             margin: EdgeInsets.only(top: 4.0),
-            padding:
-                EdgeInsets.symmetric(vertical: 8.0, horizontal: 6.0),
+            padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 6.0),
             decoration: BoxDecoration(
               color: open ? color.withOpacity(0.06) : Colors.transparent,
               borderRadius: BorderRadius.circular(8.0),
@@ -1644,8 +1626,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
                 ),
                 SizedBox(width: 7.0),
                 Container(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: 8.0, vertical: 1.5),
+                  padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 1.5),
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(999.0),
@@ -1665,16 +1646,14 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
             margin: EdgeInsets.only(left: 8.0),
             decoration: BoxDecoration(
               border: Border(
-                left:
-                    BorderSide(color: color.withOpacity(0.35), width: 3.0),
+                left: BorderSide(color: color.withOpacity(0.35), width: 3.0),
               ),
             ),
             child: items.isEmpty
                 ? Padding(
                     padding: EdgeInsets.all(10.0),
                     child: Text('ไม่มีงานในกลุ่มนี้',
-                        style:
-                            TextStyle(fontSize: 12.0, color: _kMuted)),
+                        style: TextStyle(fontSize: 12.0, color: _kMuted)),
                   )
                 : Column(
                     children: items
@@ -1697,8 +1676,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
     final carriedWeeks = 2 + title.length % 17;
 
     return InkWell(
-      onTap:
-          work == null ? null : () => showWorkDetailSheet(context, work),
+      onTap: work == null ? null : () => showWorkDetailSheet(context, work),
       child: Container(
         padding: EdgeInsets.fromLTRB(12.0, 12.0, 6.0, 12.0),
         decoration: BoxDecoration(
@@ -1733,16 +1711,15 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
                       height: 1.45,
                       fontWeight: FontWeight.w600,
                       color: strike ? _kMuted : _kInk,
-                      decoration:
-                          strike ? TextDecoration.lineThrough : null,
+                      decoration: strike ? TextDecoration.lineThrough : null,
                     ),
                   ),
                 ),
                 if (carried) ...[
                   SizedBox(width: 8.0),
                   Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 8.0, vertical: 3.0),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
                     decoration: BoxDecoration(
                       color: Color(0xFFFDF3E3),
                       borderRadius: BorderRadius.circular(999.0),
@@ -1773,8 +1750,8 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
               child: Row(
                 children: [
                   Text('งานย่อย $subDone/$subTotal',
-                      style: TextStyle(
-                          fontSize: 11.5, color: Color(0xFF6B7280))),
+                      style:
+                          TextStyle(fontSize: 11.5, color: Color(0xFF6B7280))),
                   SizedBox(width: 10.0),
                   Expanded(
                     child: ClipRRect(
@@ -1783,8 +1760,7 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
                         value: subTotal == 0 ? 0 : subDone / subTotal,
                         minHeight: 6.0,
                         backgroundColor: Color(0xFFE9EAEE),
-                        valueColor: AlwaysStoppedAnimation(
-                            Color(0xFF14A44D)),
+                        valueColor: AlwaysStoppedAnimation(Color(0xFF14A44D)),
                       ),
                     ),
                   ),
@@ -1804,7 +1780,6 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
       ),
     );
   }
-
 
   /* ---------- อัตราส่งรายงาน ---------- */
 
@@ -1861,8 +1836,8 @@ class _ExecutiveDashboardWidgetState extends State<ExecutiveDashboardWidget> {
                   onTap: () => safeSetState(() => _rateFilter = f),
                   borderRadius: BorderRadius.circular(999.0),
                   child: Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 12.0, vertical: 5.0),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 12.0, vertical: 5.0),
                     decoration: BoxDecoration(
                       color: sel ? _kInk : Color(0xFFF2F3F5),
                       borderRadius: BorderRadius.circular(999.0),

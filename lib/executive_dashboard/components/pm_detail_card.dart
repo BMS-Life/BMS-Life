@@ -158,7 +158,28 @@ class PmDetailCard extends StatelessWidget {
             Row(
               children: [
                 _field(context, 'Work ID', main != null ? '#${main.id}' : '—'),
-                _field(context, 'คะแนน', '${manager.score}/100'),
+                _fieldWidget(
+                  context,
+                  'คะแนน',
+                  Tooltip(
+                    triggerMode: TooltipTriggerMode.tap,
+                    showDuration: Duration(seconds: 6),
+                    message: 'คะแนน = % งานที่เสร็จจากงานทั้งหมด'
+                        'ของสัปดาห์นี้ (เสร็จ ÷ ทั้งหมด × 100)',
+                    child: Text(
+                      '${manager.score}/100',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.bodyMedium.override(
+                        fontFamily: theme.bodyMediumFamily,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.0,
+                        useGoogleFonts: !theme.bodyMediumIsCustom,
+                      ),
+                    ),
+                  ),
+                ),
                 _fieldWidget(
                   context,
                   'Work Status',

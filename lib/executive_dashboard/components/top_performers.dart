@@ -129,6 +129,21 @@ class _TopPerformersState extends State<TopPerformers> {
                   ),
                 ),
               ),
+              Tooltip(
+                triggerMode: TooltipTriggerMode.tap,
+                showDuration: Duration(seconds: 8),
+                padding:
+                    EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
+                margin: EdgeInsets.symmetric(horizontal: 16.0),
+                message: 'FYI — วิธีจัดอันดับ\n'
+                    '• คะแนน = % งานที่เสร็จจากงานทั้งหมดของสัปดาห์นี้\n'
+                    '  (เสร็จ ÷ ทั้งหมด × 100)\n'
+                    '• "ดีสุด" เรียงคะแนนมาก → น้อย · "แย่สุด" เรียงน้อย → มาก\n'
+                    '• คะแนนเดียวกับที่แสดงในหน้า PM Detail (Performance /100)',
+                child: Icon(Icons.info_outline_rounded,
+                    size: 16.0, color: Colors.white54),
+              ),
+              SizedBox(width: 8.0),
               if (!widget.compact) ...[
                 _filterChip(
                     context, 'Top ดีสุด', Icons.trending_up_rounded, true),
